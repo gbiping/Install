@@ -1,0 +1,4 @@
+sudo apt-add-repository ppa:ansible/ansible -y
+sudo apt update
+sudo apt install ansible -y
+echo "Now add SSH Agent plugin to Jenkins"
