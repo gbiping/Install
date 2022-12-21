@@ -7,3 +7,5 @@ sudo apt update
 sudo apt install jenkins -y
 echo "***********************Installation Completed***********************"
 systemctl status jenkins.service
+echo "################## Password for Jenkins Administtrator################"
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
