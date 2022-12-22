@@ -1,0 +1,153 @@
+
+
+https://www.linuxtechi.com/install-use-docker-on-ubuntu/
+########################################################
+
+How to Install Docker on Ubuntu 22.04 / 20.04 LTS
+Last Updated: June 20, 2022 by Pradeep Kumar
+
+Welcome Techies, In this guide, we will cover how to install Docker on Ubuntu 22.04 (Jammy Jellyfish) step by step. These are also applicable for Ubuntu 20.04 (Focal Fossa).
+What is Docker ?
+
+Docker is a free and open source tool designed to build, deploy, and run applications inside containers. Host on which docker is installed is known docker engine. Docker uses the OS level virtualization and providers container run time environment. In other words, Docker can also defined as PaaS (platform as service) tool.
+
+As docker is a daemon based service, so make sure docker service is up and running. When you launch an application which needs multiple containers and these containers have dependency among them then in such scenarios, docker compose is the solution.
+Prerequisites
+
+    Ubuntu 22.04 / 20.04 along with ssh access
+    sudo user with privilege rights
+    Stable Internet Connection
+
+Let’s deep dive into Docker installation steps on Ubuntu 22.04 / 20.04.
+Step 1) Install Docker Dependencies
+
+Login to Ubuntu 22.04 /20.04 system and run the following apt commands to install docker dependencies,
+
+$ sudo apt update
+$ sudo apt install -y ca-certificates curl gnupg lsb-release
+
+Step 2) Enable Docker Official Repository
+
+Though the docker packages are available in default package repositories but it is recommended to use docker official repository. To enable docker repository, run below commands,
+
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+Step 3) Install Docker with Apt Command
+
+As Docker comes into two editions, community and enterprise. So we will be installing community edition.
+
+So, to install latest and stable version of docker from its official repository. Run the beneath to install it
+
+$ sudo apt-get update
+$ sudo apt install docker-ce docker-ce-cli containerd.io -y
+
+Once the docker package is installed, add your local user to docker group so that user can run docker commands without sudo,
+
+$ sudo usermod -aG docker $USER
+$ newgrp docker
+
+Note: Make sure logout and login again after adding local user to docker group
+
+Verify the Docker version by executing following,
+
+$ docker version
+
+Output of above command would be:
+
+Check-Docker-Version-Ubuntu
+
+Verify docker daemon service status, run below systemctl command
+
+$ sudo systemctl status docker
+
+docker-service-status-ubuntu
+
+Above output confirms that docker daemon service is up and running.
+Step 4) Verify and Test Docker Installation
+
+To test and verify docker installation, spin up a ‘hello-world’ container using below docker command.
+
+$ docker run hello-world
+
+Above docker command will download ‘hello-world’ container image and then will spin up a container. If container displays the informational message, then we can say docker installation is successful.  Output of above ‘docker run’ would look like below.
+
+docker-run-hello-world-container-ubuntu
+Installation of Docker Compose on Ubuntu 22.04 / 20.04
+
+To install docker compose on Ubuntu Linux, execute the following commands one after the another
+
+$ sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+$ sudo chmod +x /usr/local/bin/docker-compose
+
+Check the docker-compose version by running following command,
+
+$ docker-compose --version
+docker-compose version 1.29.2, build cabd5cfb
+$
+
+Perfect, above output confirms that docker compose of version 1.29.2 is installed.
+Test Docker Compose Installation
+
+To test docker compose, let’s try to deploy WordPress using compose file. Create a project directory ‘wordpress’ using mkdir command.
+
+$ mkdir wordpress ; cd wordpress
+
+Create a docker-compose.yaml file with following content.
+
+$ vi docker-compose.yaml
+version: '3.3'
+
+services:
+   db:
+     image: mysql:latest
+     volumes:
+       - db_data:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: sqlpass@123#
+       MYSQL_DATABASE: wordpress_db
+       MYSQL_USER: dbuser
+       MYSQL_PASSWORD: dbpass@123#
+   wordpress:
+     depends_on:
+       - db
+     image: wordpress:latest
+     ports:
+       - "8000:80"
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: dbuser
+       WORDPRESS_DB_PASSWORD: dbpass@123#
+       WORDPRESS_DB_NAME: wordpress_db
+volumes:
+    db_data: {}
+
+Save and close the file.
+
+docker-compose-file-wordpress
+
+As we can see, we have used two containers one for WordPress web and other one is for database. We are also creating the persistent volume for DB container and WordPress GUI is exposed on ‘8000’ port.
+
+To deploy the WordPress, run the below command from your project’s directory
+
+$ docker-compose up -d
+
+Output of above command would like below:
+
+docker-compose-wordpress-ubuntu
+
+Above confirms that two containers are created successfully. Now try to access WordPress from the Web Browser by typing URL:
+
+http://<Server-IP-Address>:8000
+
+Wordpress-installation-via-docker-compose-ubuntu
+
+Great, above confirms that WordPress installation is started via docker-compose. Click on Continue and follow screen instructions to finish the installation.
+
+That’s all from this guide. I hope you found this guide informative, please don’t hesitate to share your feedback and comments.
+
+For more documentation on docker please refer : Docker Documentation
+
+Also Read : How to Setup Local APT Repository Server on Ubuntu 20.04
