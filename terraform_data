@@ -1,0 +1,49 @@
+##########################Define provider######################
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "Enter your key"
+  secret_key = "Enter your key"
+}
+data "aws_subnet" "selected" {
+  filter {
+    name   = "tag:Name"
+    values = ["mysubnet12"]
+  }
+}
+
+
+data "aws_security_group" "selected" {
+  filter {
+    name   = "tag:sgid"
+    values = ["mysg1234"]
+  }
+}
+
+
+
+data "aws_instance" "selected" {
+  filter {
+    name   = "tag:Name"
+    values = ["jenkins"]
+  }
+}
+data "aws_key_pair" "selected" {
+  filter {
+    name   = "tag:KeyName"
+    values = ["xmas"]
+  }
+}
+
+resource "aws_instance" "my_app_server" {
+  ami           = data.aws_instance.selected.ami
+  instance_type = data.aws_instance.selected.instance_type
+  subnet_id     = data.aws_subnet.selected.id
+  vpc_security_group_ids  = [data.aws_security_group.selected.id]
+  key_name                = data.aws_key_pair.selected.public_key
+  #depends_on              = [aws_key_pair.deployer]
+  tags = {
+    Name = "Kyaa_TERRA"
+
+  }
+
+}
