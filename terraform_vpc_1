@@ -1,0 +1,119 @@
+##########################Define provider######################
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "AKIAZS4VY75FQYKTKI7P"
+  secret_key = "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"
+}
+##########################create VPC######################
+resource "aws_vpc" "iaccs_vpc" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "iaccsvpc"
+  }
+}
+##########################create Internet Gateway######################
+resource "aws_internet_gateway" "my-igw" {
+  vpc_id = aws_vpc.iaccs_vpc.id
+
+  tags = {
+    Name = "myigw"
+  }
+}
+##########################create subnet######################
+resource "aws_subnet" "my-subnet" {
+  vpc_id     = aws_vpc.iaccs_vpc.id
+  cidr_block = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "mysubnet"
+  }
+}
+##########################create Routing Table######################
+resource "aws_route_table" "my-rt" {
+  vpc_id = aws_vpc.iaccs_vpc.id
+
+  route = []
+
+  tags = {
+    Name = "myrt"
+  }
+}
+##########################create route for public subnet######################
+resource "aws_route" "my-route1" {
+  route_table_id         = aws_route_table.my-rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.my-igw.id
+  depends_on             = [aws_route_table.my-rt]
+}
+##########################Routing table and subnet association######################
+resource "aws_route_table_association" "a" {
+  subnet_id      = aws_subnet.my-subnet.id
+  route_table_id = aws_route_table.my-rt.id
+}
+##########################create security group######################
+resource "aws_security_group" "my_sg1" {
+  name        = "my_sg123"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.iaccs_vpc.id
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = null
+  }
+  ingress {
+    description      = "TLS from ssh"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = null
+  }
+
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+}
+##########################create first Instance######################
+resource "aws_instance" "app_server" {
+  ami           = "ami-0574da719dca65348"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.my-subnet.id
+  # security_groups = ["my_sg123"]
+  vpc_security_group_ids = [aws_security_group.my_sg1.id]
+  key_name               = "terrakey"
+  depends_on             = [aws_key_pair.deployer]
+  tags = {
+    Name = "My_TERRA"
+  }
+
+}
+##########################second Instance######################
+resource "aws_instance" "app_server2" {
+  ami           = "ami-0574da719dca65348"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.my-subnet.id
+  vpc_security_group_ids  = [aws_security_group.my_sg1.id]
+  key_name                = "terrakey"
+  depends_on              = [aws_key_pair.deployer]
+  tags = {
+    Name = "Kya_TERRA"
+
+  }
+
+}
+################input public key value of any keypair########
+resource "aws_key_pair" "deployer" {
+  key_name   = "terrakey"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1wRg+edOOBtF9PUJrFtXs2tUWqBvbhhoY7sz808GWbBOYMjbhqvebLCSsJv7TOSjThZYDwIejka00zAAq5lJj291XsvZPQGyY/YqKNVEXmGiTmt6ldVPJcx8bZsjLzhX+sIEIxxHg2Cjx5jqtSJamvDBP+DAuz1QvKQZol18oDF5ksn6hTKM9QR3c6NcI0qJiVDeBujvd/1B/Xuqhr1Abya1xlwC7hv/k76FlRKEvFtbRbgVBi4B7iapdMZMK6GQ/tbt2+6A/9SQqaARBVR4fI+NvUsQOzzUsPhqDlfbVLFIiWghw6MLJsK0e5FrQ5Dz0EfqArEs6WBvX8U56cEUT xxx"
+}
+
+
