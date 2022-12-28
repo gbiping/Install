@@ -1,8 +1,8 @@
 ##########################Define provider######################
 provider "aws" {
   region     = "us-east-1"
-  access_key = "AKIAZS4VY75FQYKTKI7P"
-  secret_key = "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"
+  access_key = "Enter valid key"
+  secret_key = "Enter valid key"
 }
 ##########################create VPC######################
 resource "aws_vpc" "iaccs_vpc" {
